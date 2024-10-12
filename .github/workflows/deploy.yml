@@ -25,32 +25,32 @@ jobs:
               git clone https://github.com/Asheesh-Shaik/test_dev.git 
             fi
             cd test_dev
-
+            
             # Pull the latest changes from the repository
             git pull origin master  # Adjust branch name if necessary
-
+            
             # Check if the port is already in use
-            if [ $(sudo lsof -ti:8501) ]; then
+            if [ $(sudo -S lsof -ti:8501 <<< "${{ secrets.AZURE_PASSWORD }}") ]; then
               echo "Port 8501 is already in use. Stopping the conflicting service..."
               # Stop the process using the port
-              PID=$(sudo lsof -ti:8501)
-              sudo kill -9 $PID || true
+              PID=$(sudo -S lsof -ti:8501 <<< "${{ secrets.AZURE_PASSWORD }}")
+              sudo -S kill -9 $PID <<< "${{ secrets.AZURE_PASSWORD }}" || true
             fi
-
+            
             # Check if the container exists and stop/remove it
-            if [ $(sudo docker ps -aq -f name=my-streamlit-app) ]; then
+            if [ $(sudo -S docker ps -aq -f name=my-streamlit-app <<< "${{ secrets.AZURE_PASSWORD }}") ]; then
               echo "Stopping and removing existing container..."
-              sudo docker stop my-streamlit-app || true
-              sudo docker rm my-streamlit-app || true
+              sudo -S docker stop my-streamlit-app <<< "${{ secrets.AZURE_PASSWORD }}" || true
+              sudo -S docker rm my-streamlit-app <<< "${{ secrets.AZURE_PASSWORD }}" || true
             else
               echo "No existing container to stop."
             fi
-
+            
             # Ensure the Docker daemon is running
-            sudo service docker start
-
+            sudo -S service docker start <<< "${{ secrets.AZURE_PASSWORD }}"
+            
             # Build the Docker image
-            sudo docker build -t my-streamlit-app .
-
+            sudo -S docker build -t my-streamlit-app . <<< "${{ secrets.AZURE_PASSWORD }}"
+            
             # Run the new container
-            sudo docker run -d --name my-streamlit-app -p 8501:8501 my-streamlit-app || { echo "Failed to start container"; exit 1; }
+            sudo -S docker run -d --name my-streamlit-app -p 8501:8501 my-streamlit-app || { echo "Failed to start container"; exit 1; }
