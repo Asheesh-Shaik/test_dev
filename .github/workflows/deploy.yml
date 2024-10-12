@@ -20,6 +20,9 @@ jobs:
           username: test-dev  # e.g., azureuser
           password: ${{ secrets.AZURE_PASSWORD }}  # Store your password in secrets
           script: |
+            # Change to root user
+            sudo su -
+
             # Change to the application directory or create it if it doesn't exist
             if [ ! -d "test_dev" ]; then
               git clone https://github.com/Asheesh-Shaik/test_dev.git 
@@ -29,6 +32,14 @@ jobs:
             # Pull the latest changes from the repository
             git pull origin master  # Adjust branch name if necessary
 
+            # Check if the port is already in use
+            if [ $(sudo lsof -ti:8501) ]; then
+              echo "Port 8501 is already in use. Stopping the conflicting service..."
+              # Stop the process using the port
+              PID=$(sudo lsof -ti:8501)
+              sudo kill -9 $PID || true
+            fi
+
             # Check if the container exists and stop/remove it
             if [ $(docker ps -aq -f name=my-streamlit-app) ]; then
               echo "Stopping and removing existing container..."
@@ -36,14 +47,6 @@ jobs:
               docker rm my-streamlit-app || true
             else
               echo "No existing container to stop."
-            fi
-
-            # Check if the port is already in use and stop the process
-            if [ $(lsof -ti:8501) ]; then
-              echo "Port 8501 is already in use. Stopping the conflicting service..."
-              # Stop the process using the port
-              PID=$(lsof -ti:8501)
-              sudo kill -9 $PID || true  # Use `|| true` to ignore errors if process doesn't exist
             fi
 
             # Ensure the Docker daemon is running
