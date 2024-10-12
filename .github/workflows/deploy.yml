@@ -29,8 +29,8 @@ jobs:
             # Pull the latest changes from the repository
             git pull origin master  # Adjust branch name if necessary
             
-            # Check if the port is already in use
-            if [ $(sudo -S lsof -ti:8501 <<< "${{ secrets.AZURE_PASSWORD }}") ]; then
+            # Check if the port is already in use using pgrep
+            if pgrep -f "streamlit" > /dev/null; then
               echo "Port 8501 is already in use. Stopping the conflicting service..."
               # Stop the process using the port
               PID=$(sudo -S lsof -ti:8501 <<< "${{ secrets.AZURE_PASSWORD }}")
@@ -38,7 +38,7 @@ jobs:
             fi
             
             # Check if the container exists and stop/remove it
-            if [ $(sudo -S docker ps -aq -f name=my-streamlit-app <<< "${{ secrets.AZURE_PASSWORD }}") ]; then
+            if sudo -S docker ps -aq -f name=my-streamlit-app <<< "${{ secrets.AZURE_PASSWORD }}"; then
               echo "Stopping and removing existing container..."
               sudo -S docker stop my-streamlit-app <<< "${{ secrets.AZURE_PASSWORD }}" || true
               sudo -S docker rm my-streamlit-app <<< "${{ secrets.AZURE_PASSWORD }}" || true
