@@ -21,10 +21,10 @@ jobs:
           password: ${{ secrets.AZURE_PASSWORD }}  # Store your password in secrets
           script: |
             # Change to the application directory or create it if it doesn't exist
-            if [ ! -d "my-streamlit-app" ]; then
-              git clone <your-github-repo-url> my-streamlit-app
+            if [ ! -d "test_dev" ]; then
+              git clone https://github.com/Asheesh-Shaik/test_dev.git 
             fi
-            cd my-streamlit-app
+            cd test_dev
 
             # Pull the latest changes from the repository
             git pull origin master  # Adjust branch name if necessary
