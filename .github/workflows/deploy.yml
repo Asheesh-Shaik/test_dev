@@ -20,9 +20,6 @@ jobs:
           username: test-dev  # e.g., azureuser
           password: ${{ secrets.AZURE_PASSWORD }}  # Store your password in secrets
           script: |
-            # Change to root user
-            sudo su -
-
             # Change to the application directory or create it if it doesn't exist
             if [ ! -d "test_dev" ]; then
               git clone https://github.com/Asheesh-Shaik/test_dev.git 
@@ -41,10 +38,10 @@ jobs:
             fi
 
             # Check if the container exists and stop/remove it
-            if [ $(docker ps -aq -f name=my-streamlit-app) ]; then
+            if [ $(sudo docker ps -aq -f name=my-streamlit-app) ]; then
               echo "Stopping and removing existing container..."
-              docker stop my-streamlit-app || true
-              docker rm my-streamlit-app || true
+              sudo docker stop my-streamlit-app || true
+              sudo docker rm my-streamlit-app || true
             else
               echo "No existing container to stop."
             fi
@@ -53,7 +50,7 @@ jobs:
             sudo service docker start
 
             # Build the Docker image
-            docker build -t my-streamlit-app .
+            sudo docker build -t my-streamlit-app .
 
             # Run the new container
-            docker run -d --name my-streamlit-app -p 8501:8501 my-streamlit-app || { echo "Failed to start container"; exit 1; }
+            sudo docker run -d --name my-streamlit-app -p 8501:8501 my-streamlit-app || { echo "Failed to start container"; exit 1; }
