@@ -17,7 +17,7 @@ jobs:
         uses: appleboy/ssh-action@v0.1.4
         with:
           host: 20.205.26.179
-          username: test-dev # e.g., azureuser
+          username: test-dev  # e.g., azureuser
           password: ${{ secrets.AZURE_PASSWORD }}  # Store your password in secrets
           script: |
             # Change to the application directory or create it if it doesn't exist
@@ -29,12 +29,25 @@ jobs:
             # Pull the latest changes from the repository
             git pull origin master  # Adjust branch name if necessary
 
+            # Check if the container exists and stop/remove it
+            if [ $(docker ps -aq -f name=my-streamlit-app) ]; then
+              echo "Stopping and removing existing container..."
+              docker stop my-streamlit-app || true
+              docker rm my-streamlit-app || true
+            else
+              echo "No existing container to stop."
+            fi
+
+            # Check if the port is already in use
+            if [ $(lsof -ti:8501) ]; then
+              echo "Port 8501 is already in use. Stopping the conflicting service..."
+              # Optionally add logic to stop the conflicting container or service here
+              # e.g., you could stop the specific container if you know its name
+              # docker stop <conflicting_container>
+            fi
+
             # Build the Docker image
             docker build -t my-streamlit-app .
 
-            # Stop and remove the existing container if it's running
-            docker stop my-streamlit-app || true
-            docker rm my-streamlit-app || true
-
             # Run the new container
-            docker run -d -p 8501:8501 my-streamlit-app
+            docker run -d --name my-streamlit-app -p 8501:8501 my-streamlit-app
