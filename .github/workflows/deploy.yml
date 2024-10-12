@@ -38,7 +38,7 @@ jobs:
               echo "No existing container to stop."
             fi
 
-            # Check if the port is already in use
+            # Check if the port is already in use and stop the process
             if [ $(lsof -ti:8501) ]; then
               echo "Port 8501 is already in use. Stopping the conflicting service..."
               # Stop the process using the port
@@ -46,8 +46,11 @@ jobs:
               sudo kill -9 $PID || true  # Use `|| true` to ignore errors if process doesn't exist
             fi
 
+            # Ensure the Docker daemon is running
+            sudo service docker start
+
             # Build the Docker image
             docker build -t my-streamlit-app .
 
             # Run the new container
-            docker run -d --name my-streamlit-app -p 8501:8501 my-streamlit-app
+            docker run -d --name my-streamlit-app -p 8501:8501 my-streamlit-app || { echo "Failed to start container"; exit 1; }
