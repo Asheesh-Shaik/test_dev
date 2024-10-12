@@ -41,9 +41,9 @@ jobs:
             # Check if the port is already in use
             if [ $(lsof -ti:8501) ]; then
               echo "Port 8501 is already in use. Stopping the conflicting service..."
-              # Optionally add logic to stop the conflicting container or service here
-              # e.g., you could stop the specific container if you know its name
-              # docker stop <conflicting_container>
+              # Stop the process using the port
+              PID=$(lsof -ti:8501)
+              sudo kill -9 $PID || true  # Use `|| true` to ignore errors if process doesn't exist
             fi
 
             # Build the Docker image
